@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace prakt2
 {
@@ -14,12 +16,17 @@ namespace prakt2
         public Team(int pm, int lawyer, int economist,
             int engineer, int programmer, double productivity)
         {
-            ProjectManagerId = pm + 1;
-            LawyerId = lawyer + 1;
-            EconomistId = economist + 1;
-            EngineerId = engineer + 1;
-            ProgrammerId = programmer + 1;
+            ProjectManagerId = pm;
+            LawyerId = lawyer;
+            EconomistId = economist;
+            EngineerId = engineer;
+            ProgrammerId = programmer;
             Productivity = productivity;
+        }
+
+        public override string ToString()
+        {
+            return $"PM:{ProjectManagerId} Layer:{LawyerId} Economist:{EconomistId} Engineer:{EngineerId} Programmer:{ProgrammerId} Productivity:{Productivity}";
         }
     }
 
@@ -29,9 +36,12 @@ namespace prakt2
 
         public double TotalProductivity { get; set; }
 
-        public TeamSet()
+        public override string ToString()
         {
-            Teams = new List<Team>();
+            var sb = new StringBuilder();
+            sb.Append($"{Environment.NewLine}====== Total Set Productivity: {TotalProductivity} ======");
+            Teams.ForEach(team => sb.Append($"{Environment.NewLine}{team}"));
+            return sb.ToString();
         }
     }
 }

@@ -5,22 +5,11 @@ using System.Linq;
 namespace prakt2 
 {
     class Solution {
-        private double[] pms;
-        private double[] lawyers;
-        private double[] economists;
-        private double[] engineers;
-        private double[] programmers;
-        private Dictionary<string, Team> teamByKey;
+        private readonly ProductivityComputer _computer;
 
-        public Solution(double idxNumber, double groupNumber)
+        public Solution(ProductivityComputer computer)
         {
-            teamByKey = new Dictionary<string, Team>();
-            ComputeProductivityPMs(idxNumber, groupNumber);
-            ComputeProductivityLayers(idxNumber, groupNumber);
-            ComputeProductivityEconomists(idxNumber, groupNumber);
-            ComputeProductivityEngineers(idxNumber, groupNumber);
-            ComputeProductivitySEs(idxNumber, groupNumber);
-            ComputePossibleTeams();
+            _computer = computer ?? throw new ArgumentNullException(nameof(computer));
         }
 
         public IReadOnlyCollection<TeamSet> MostProductiveTeamSets()
@@ -66,8 +55,10 @@ namespace prakt2
             LinkedList<int> usedEngineers, LinkedList<int> usedProgrammers,
             int lawyer, int economist, int engineer, int programmer)
         {
-            var key = $"0{lawyer}{economist}{engineer}{programmer}";
-            Team team = teamByKey[key];
+            Team team =  _computer.GetTeam(0, lawyer, economist, engineer, programmer);
+            if (team == null)
+                return;
+
             currentTeams.AddLast(team);
             SecondTeam(currentTeams, teamSets, usedLayers, usedEconomists, usedEngineers, usedProgrammers);
             currentTeams.RemoveLast();
@@ -90,8 +81,10 @@ namespace prakt2
             LinkedList<int> usedEngineers, LinkedList<int> usedProgrammers,
             int lawyer, int economist, int engineer, int programmer)
         {
-            var key = $"1{lawyer}{economist}{engineer}{programmer}";
-            Team team = teamByKey[key];
+            Team team =  _computer.GetTeam(1, lawyer, economist, engineer, programmer);
+            if (team == null)
+                return;
+
             currentTeams.AddLast(team);
             ThirdTeam(currentTeams, teamSets, usedLayers, usedEconomists, usedEngineers, usedProgrammers);
             currentTeams.RemoveLast();
@@ -113,8 +106,10 @@ namespace prakt2
             LinkedList<int> usedEngineers, LinkedList<int> usedProgrammers,
             int lawyer, int economist, int engineer, int programmer)
         {
-            var key = $"2{lawyer}{economist}{engineer}{programmer}";
-            Team team = teamByKey[key];
+            Team team =  _computer.GetTeam(2, lawyer, economist, engineer, programmer);
+            if (team == null)
+                return;
+
             currentTeams.AddLast(team);
             FourthTeam(currentTeams, teamSets, usedLayers, usedEconomists, usedEngineers, usedProgrammers);
             currentTeams.RemoveLast();
@@ -136,8 +131,10 @@ namespace prakt2
             LinkedList<int> usedEngineers, LinkedList<int> usedProgrammers,
             int lawyer, int economist, int engineer, int programmer)
         {
-            var key = $"3{lawyer}{economist}{engineer}{programmer}";
-            Team team = teamByKey[key];
+            Team team =  _computer.GetTeam(3, lawyer, economist, engineer, programmer);
+            if (team == null)
+                return;
+
             currentTeams.AddLast(team);
             var newTeamSet = new TeamSet
             {
@@ -153,22 +150,22 @@ namespace prakt2
             LinkedList<int> usedEngineers, LinkedList<int> usedProgrammers,
             Action<LinkedList<Team>, List<TeamSet>, LinkedList<int>, LinkedList<int>, LinkedList<int>, LinkedList<int>, int, int, int, int> action)
         {
-            for (int lawyer = 0; lawyer < lawyers.Length; lawyer++)
+            for (int lawyer = 0; lawyer < _computer.LawyersCount; lawyer++)
             {
                 if (usedLayers.Contains(lawyer))
                     continue;
                 usedLayers.AddLast(lawyer);
-                for (int economist = 0; economist < economists.Length; economist++)
+                for (int economist = 0; economist < _computer.EconomistsCount; economist++)
                 {
                     if (usedEconomists.Contains(economist))
                         continue;
                     usedEconomists.AddLast(economist);
-                    for (int engineer = 0; engineer < engineers.Length; engineer++)
+                    for (int engineer = 0; engineer < _computer.EngineersCount; engineer++)
                     {
                         if (usedEngineers.Contains(engineer))
                             continue;
                         usedEngineers.AddLast(engineer);
-                        for (int programmer = 0; programmer < programmers.Length; programmer++)
+                        for (int programmer = 0; programmer < _computer.ProgrammersCount; programmer++)
                         {
                             if (usedProgrammers.Contains(programmer))
                                 continue;
@@ -186,98 +183,6 @@ namespace prakt2
                 }
                 usedLayers.RemoveLast();
             }
-        }
-
-        private void ComputePossibleTeams()
-        {
-            for (int pm = 0; pm < pms.Length; pm++)
-            {
-                for (int lawyer = 0; lawyer < lawyers.Length; lawyer++)
-                {
-                    for (int economist = 0; economist < economists.Length; economist++)
-                    {
-                        for (int engineer = 0; engineer < engineers.Length; engineer++)
-                        {
-                            for (int programmer = 0; programmer < programmers.Length; programmer++)
-                            {
-                                double teamProductivity =
-                                    ComputedProductivity(pm, lawyer, economist, engineer, programmer);
-                                var key = $"{pm}{lawyer}{economist}{engineer}{programmer}";
-                                teamByKey[key] = new Team(pm, lawyer, economist, engineer, programmer, teamProductivity);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        private double ComputedProductivity(int pm, int lawyer, int economist, int engineer, int programmer)
-        {
-            throw new NotImplementedException();
-        }
-
-        private void ComputeProductivitySEs(double n, double m)
-        {
-            programmers = new double[]
-            {
-                0.6,
-                ValidProdValue(0.2 + 2 * m * n / 100),
-                ValidProdValue(0.5 + m * n / 100),
-                ValidProdValue(1.0 - m * n / 100)
-            };
-        }
-
-        private void ComputeProductivityEngineers(double n, double m)
-        {
-            engineers = new double[]
-            {
-                0.75,
-                ValidProdValue(0.05 + 3 * m * n / 100),
-                ValidProdValue(0.35 + m * n / 100),
-                ValidProdValue(0.85 - m * n / 100)
-            };
-        }
-
-        private void ComputeProductivityEconomists(double n, double m)
-        {
-            economists = new double[]
-            {
-                ValidProdValue(0.5 + m * n / 100),
-                ValidProdValue(0.9 - m * n / 100),
-                ValidProdValue(0.3 + 2 * m * n / 100),
-                0.75
-            };
-        }
-
-        private void ComputeProductivityLayers(double n, double m)
-        {
-            lawyers = new double[] 
-            {
-                0.75,
-                ValidProdValue(0.25 + 2 * m * n / 100),
-                ValidProdValue(0.45 + m * n / 100),
-                ValidProdValue(0.95 - m * n / 100)
-            };
-        }
-
-        private void ComputeProductivityPMs(double n, double m)
-        {
-            pms = new double[] 
-            {
-                ValidProdValue(0.5 + m * n / 100),
-                ValidProdValue(0.9 - m*n / 100),
-                ValidProdValue(0.3 + 2 * m * n / 100),
-                0.85
-            };
-        }
-
-        private double ValidProdValue(double val) 
-        {
-            if (val > 1)
-                return 0.95;
-            if (val <= 0)
-                return 0.05;
-            return val;
         }
     }
 }
